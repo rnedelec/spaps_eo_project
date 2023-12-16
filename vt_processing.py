@@ -6,7 +6,7 @@ from typing import Tuple, List
 
 
 def process_species_comp(comp_string: str) -> List[Tuple[str, str]]:
-    """Deserialize species compositin into list of tuples"""
+    """Deserialize species composition into list of tuples"""
     n = 6  # Nb of characters in line blocs
     blocks = [comp_string[i:i + n] for i in range(0, len(comp_string), n)]
     species_comp = []
@@ -18,7 +18,7 @@ def process_species_comp(comp_string: str) -> List[Tuple[str, str]]:
 
 
 def compute_shannon(comp_string: str) -> float:
-    """Computes Shannon index from deserialized species comp"""
+    """Computes Shannon index from deserialized species composition"""
     species_comp = process_species_comp(comp_string)
     shannon = 0
     for composition in species_comp:
