@@ -1,3 +1,4 @@
+import os
 import geopandas as gpd
 import matplotlib.pyplot as plt
 import math
@@ -28,7 +29,7 @@ def compute_shannon(comp_string: str) -> float:
 
 
 if __name__ == '__main__':
-    data = gpd.read_file(r"RM_FRI_SampleSet.gdb")
+    data = gpd.read_file(os.environ["data_dir"] + r"\RM_FRI_SampleSet.gdb")
 
     # Inspecting species composition
     # Pinting first rows for forest polygons
@@ -45,10 +46,10 @@ if __name__ == '__main__':
     # Compute Shannon on all forest polygons
     forest = data[data['POLYTYPE'] == 'FOR'].copy()
     forest['Shannon'] = forest['SPCOMP'].map(compute_shannon)
-    forest.plot(column='Shannon')
+    forest.plot(column='Shannon', legend=True)
     plt.show()
 
     # Show Shannon on forest calibration plots subset
     calib_plots = forest[forest['SOURCE'] == 'PLOTVAR']
-    calib_plots.plot(column='Shannon')
+    calib_plots.plot(column='Shannon', legend=True)
     plt.show()
