@@ -32,14 +32,14 @@ if __name__ == '__main__':
     data = gpd.read_file(os.environ["data_dir"] + r"\RM_FRI_SampleSet.gdb")
 
     # Inspecting species composition
-    # Pinting first rows for forest polygons
+    # Printing first rows for forest polygons
     data[data['POLYTYPE'] == 'FOR']['SPCOMP'].head()
 
     # Plotting compositions
     data[data['POLYTYPE'] == 'FOR'].plot(column='SPCOMP')
     plt.show()
 
-    # Calibratin plots
+    # Calibration plots
     data[data['SOURCE'] == 'PLOTVAR'].plot(column='SPCOMP')
     plt.show()
 
