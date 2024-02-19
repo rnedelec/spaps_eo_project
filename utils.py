@@ -32,7 +32,7 @@ def compute_ndvi_from_sentinel(b04_filepath, b08_filepath, subregion=None):
     return ndvi, transform
 
 
-def plot_from_1d_raster(raster_filepath, subregion=None):
+def plot_raster_on_subregion(raster_filepath, subregion=None):
     with rasterio.open(raster_filepath) as dataset:
         if subregion is not None:
             data, transform = rasterio.mask.mask(dataset=dataset,
