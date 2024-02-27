@@ -1,5 +1,6 @@
 import sys
 import rasterio
+from scipy import stats
 import utils
 import geopandas as gpd
 import matplotlib
@@ -86,8 +87,8 @@ def compute_ndvi_and_rao_on_tree(b04_filepath,
     return ndvi, rao[0], transform
 
 if __name__ == '__main__':
-    b04_filepath = r"/Users/retif/Desktop/SUPAERO/Tutored Project/S2B_MSIL1C_20240203T162459_N0510_R040_T17UMP_20240203T182319.SAFE/GRANULE/L1C_T17UMP_A036102_20240203T162501/IMG_DATA/T17UMP_20240203T162459_B04.jp2"
-    b08_filepath = r"/Users/retif/Desktop/SUPAERO/Tutored Project/S2B_MSIL1C_20240203T162459_N0510_R040_T17UMP_20240203T182319.SAFE/GRANULE/L1C_T17UMP_A036102_20240203T162501/IMG_DATA/T17UMP_20240203T162459_B08.jp2"
+    b04_filepath = r"/Users/retif/Desktop/SUPAERO/Tutored Project/S2A_MSIL1C_20231213T163701_N0510_R083_T16TGT_20231213T182817.SAFE/GRANULE/L1C_T16TGT_A044267_20231213T163701/IMG_DATA/T16TGT_20231213T163701_B04.jp2"
+    b08_filepath = r"/Users/retif/Desktop/SUPAERO/Tutored Project/S2A_MSIL1C_20231213T163701_N0510_R083_T16TGT_20231213T182817.SAFE/GRANULE/L1C_T16TGT_A044267_20231213T163701/IMG_DATA/T16TGT_20231213T163701_B08.jp2"
 
     data = gpd.read_file(
         r"/Users/retif/Desktop/SUPAERO/Tutored Project/pp_FRI_FIMv2_Martel_Forest(509)_2015_2D.gdb",
@@ -99,31 +100,7 @@ if __name__ == '__main__':
     elif 'OSPCOMP' and 'USPCOMP' in data:
         species_keys = ['OSPCOMP', 'USPCOMP']
 
-   # print("Columns in data GeoDataFrame:", data.columns)
-
     forest = data[data['POLYTYPE'] == 'FOR'].copy()
-
-
-    # ## Change projection
-    # with rasterio.open(b08_filepath) as srcS2:
-    #     crs_S2 = srcS2.crs
-    # forest.to_crs(crs=crs_S2, inplace=True)
-    # print("CRS S2 :", crs_S2)
-    # print("CRS FOR :", forest.crs)
-
-    # Change projection
-   # forest.to_crs("EPSG:32617", inplace=True)
-
-    # Change projection
-    new_epsg_code = 32617
-    with rasterio.open(b04_filepath, "r+") as srcB04:
-        srcB04.crs = rasterio.crs.CRS.from_epsg(new_epsg_code)
-    with rasterio.open(b08_filepath, "r+") as srcB08:
-        srcB08.crs = rasterio.crs.CRS.from_epsg(new_epsg_code)
-    with rasterio.open(b04_filepath) as srcB04:
-        print("CRS de B04 après changement :", srcB04.crs)
-    with rasterio.open(b08_filepath) as srcB08:
-        print("CRS de B08 après changement :", srcB08.crs)
 
     # Simplifier les géométries du GeoDataFrame
     forest['geometry'] = forest['geometry'].apply(lambda geom: geom.convex_hull)
@@ -131,17 +108,24 @@ if __name__ == '__main__':
     # Convertir MultiPolygons en Polygons
     forest['geometry'] = forest['geometry'].apply(lambda geom: geom.geoms[0] if geom.is_empty else geom)
 
+    # Change projection
+    new_epsg_code = 32616
+
     forest.to_crs(crs=new_epsg_code, inplace=True)
     print("CRS forest :", forest.crs)
 
     calib_plots = forest[forest['SOURCE'] == 'PLOTVAR']
+    print("calib plots", calib_plots)
+    # calib_plots = calib_plots.head(10)
+    # print("calib plot subset", calib_plots)
 
     # Methodology meta parameters
-    window = 3
+    window = 11
     na_tolerance = 0.4
     ndvi_threshold = 0.4
 
     results = pd.DataFrame(columns=["ID", "rao", "shannon"])
+
     for i, tree in calib_plots.iterrows():
         # Compute NDVI & RAO
         try:
@@ -152,8 +136,7 @@ if __name__ == '__main__':
             if np.isnan(np.nanmean(rao)):
                 print(f"Tree {tree['POLYID']} has empty intersection, skipping...")
                 continue
-            forest = data[data['POLYTYPE'] == 'FOR'].copy()
-            forest['Shannon'] = forest[species_keys[0]].map(compute_shannon)
+            shannon_value = compute_shannon(tree[species_keys[0]])
         except ValueError as e:
             print(f"Tree {tree['POLYID']} not processed")
             print(e)
@@ -164,15 +147,32 @@ if __name__ == '__main__':
                 [results,
                  pd.DataFrame(
                      [
-                         [tree['POLYID'], np.nanmean(rao), forest['Shannon']]
+                         [tree['POLYID'], np.nanmean(rao), shannon_value]
                      ],
                      columns=results.columns
                  )]
             )
 
-    # Plot relation between shannon and RAO's Q
+    # Plot relation between Shannon and RAO's Q
     plt.figure()
-    sns.scatterplot(results, x='shannon', y='rao')
+    sns.scatterplot(data=results, x='shannon', y='rao')
+
+    # Fit a linear regression line
+    slope, intercept, r_value, p_value, std_err = stats.linregress(results['shannon'], results['rao'])
+
+    # Plot the regression line
+    plt.plot(results['shannon'], intercept + slope * results['shannon'], color='red', label='Regression Line')
+
+    # Calculate R-squared
+    r_squared = r_value ** 2
+    print(f'R-squared: {r_squared:.4f}')
+
+    # Calculate Pearson correlation coefficient
+    pearson_corr = results['shannon'].corr(results['rao'])
+    print(f'Pearson correlation coefficient: {pearson_corr:.4f}')
+
+    # Display the plot
+    plt.legend()
     plt.show()
 
     ## DEBUG
@@ -188,26 +188,25 @@ if __name__ == '__main__':
     print("CRS B08 après le changement :", rasterio.open(b08_filepath).crs)
 
     # Vérification des coordonnées spatiales des formes géométriques
-    print("Extent GeoDataFrame :", data.total_bounds)
+    print("Extent GeoDataFrame :", forest.total_bounds)
     print("Extent B04 :", rasterio.open(b04_filepath).bounds)
     print("Extent B08 :", rasterio.open(b08_filepath).bounds)
 
     print("Quelques lignes du GeoDataFrame :", forest.head())
 
-    print("Chemin du fichier B04 :", b04_filepath)
-    print("Chemin du fichier B08 :", b08_filepath)
-
     print("Géométrie de la première ligne du GeoDataFrame :", forest.geometry.iloc[0])
 
-    # If we want to check a specific tree. Execute this code
-    # selected_tree_id = 165
+    print(results.head())
+
+    # ## If we want to check a specific tree. Execute this code
+    # selected_tree_id = '173205270-0747'
     # ndvi, rao, transform = compute_ndvi_and_rao_on_tree_by_id(
-    #                 b04_filepath, b08_filepath, trees, selected_tree_id, ndvi_threshold, window, na_tolerance,
+    #                 b04_filepath, b08_filepath, data, selected_tree_id, ndvi_threshold, window, na_tolerance,
     #                 plot=True
     #                 )
-
-    # To plot the RGB image on the same tree we can execute the following code
-    # from spaps_eo_project import utils
-    # true_colors_filepath = r"C:\Users\Renaud\SPAPS\Team project\Ivory\Sentinel\S2B_MSIL2A_20230110T105329_N0509_R051_T29NNH_20230110T133644.SAFE\GRANULE\L2A_T29NNH_A030536_20230110T110319\IMG_DATA\R10m\T29NNH_20230110T105329_TCI_10m.jp2"
-    # tree = trees[trees['tree_ID'].astype('int') == selected_tree_id].iloc[0]
+    #
+    # ## To plot the RGB image on the same tree we can execute the following code
+    # import utils
+    # true_colors_filepath = r"/Users/retif/Desktop/SUPAERO/Tutored Project/S2A_MSIL1C_20231213T163701_N0510_R083_T16TGT_20231213T182817.SAFE/GRANULE/L1C_T16TGT_A044267_20231213T163701/IMG_DATA/T16TGT_20231213T163701_TCI.jp2"
+    # tree = data[data['POLYID'].astype('int') == selected_tree_id].iloc[0]
     # utils.plot_raster_on_subregion(true_colors_filepath, tree['geometry'])
