@@ -16,6 +16,7 @@ b04_filepath = r"/Users/retif/Desktop/SUPAERO/Tutored Project/S2A_MSIL1C_2023121
 b08_filepath = r"/Users/retif/Desktop/SUPAERO/Tutored Project/S2A_MSIL1C_20231213T163701_N0510_R083_T16TGT_20231213T182817.SAFE/GRANULE/L1C_T16TGT_A044267_20231213T163701/IMG_DATA/T16TGT_20231213T163701_B08.jp2"
 rgb_filepath = r"/Users/retif/Desktop/SUPAERO/Tutored Project/S2A_MSIL1C_20231213T163701_N0510_R083_T16TGT_20231213T182817.SAFE/GRANULE/L1C_T16TGT_A044267_20231213T163701/IMG_DATA/T16TGT_20231213T163701_TCI.jp2"
 
+
 # Read RGB and band data using rasterio
 with rasterio.open(b04_filepath) as b04_ds, rasterio.open(b08_filepath) as b08_ds, rasterio.open(rgb_filepath) as rgb_ds:
     b04_data = b04_ds.read(1)
