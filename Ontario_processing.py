@@ -120,7 +120,7 @@ if __name__ == '__main__':
     # print("calib plot subset", calib_plots)
 
     # Methodology meta parameters
-    window = 11
+    window = 7
     na_tolerance = 0.4
     ndvi_threshold = 0.4
 
@@ -172,7 +172,11 @@ if __name__ == '__main__':
     print(f'Pearson correlation coefficient: {pearson_corr:.4f}')
 
     # Display the plot
-    plt.legend()
+    plt.text(0.1, 0.95, f'R-squared: {r_squared:.4f}', transform=plt.gca().transAxes)
+    plt.text(0.1, 0.90, f'Pearson corr: {pearson_corr:.4f}', transform=plt.gca().transAxes)
+    plt.text(0.1, 0.85, f'p-value: {p_value:.4f}', transform=plt.gca().transAxes)
+    legend_text = f"Window={window}, NA Tolerance={na_tolerance}, NDVI Threshold={ndvi_threshold}"
+    plt.legend([legend_text, 'Regression Line'])
     plt.show()
 
     ## DEBUG
