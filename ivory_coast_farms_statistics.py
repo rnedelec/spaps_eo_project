@@ -133,13 +133,14 @@ def process_subregion(
 if __name__ == '__main__':
     # b04_filepath = r"C:\Users\Renaud\SPAPS\Team project\Ivory\Sentinel\S2B_MSIL2A_20230110T105329_N0509_R051_T29NNH_20230110T133644.SAFE\GRANULE\L2A_T29NNH_A030536_20230110T110319\IMG_DATA\R10m\T29NNH_20230110T105329_B04_10m.jp2"
     # b08_filepath = r"C:\Users\Renaud\SPAPS\Team project\Ivory\Sentinel\S2B_MSIL2A_20230110T105329_N0509_R051_T29NNH_20230110T133644.SAFE\GRANULE\L2A_T29NNH_A030536_20230110T110319\IMG_DATA\R10m\T29NNH_20230110T105329_B08_10m.jp2"
-    b04_filepath = r"C:\Users\Renaud\SPAPS\Team project\Ivory\Sentinel\S2B_MSIL2A_20221231T105349_N0509_R051_T29NPH_20221231T133126.SAFE\GRANULE\L2A_T29NPH_A030393_20221231T110338\IMG_DATA\R10m\T29NPH_20221231T105349_B04_10m.jp2"
-    b08_filepath = r"C:\Users\Renaud\SPAPS\Team project\Ivory\Sentinel\S2B_MSIL2A_20221231T105349_N0509_R051_T29NPH_20221231T133126.SAFE\GRANULE\L2A_T29NPH_A030393_20221231T110338\IMG_DATA\R10m\T29NPH_20221231T105349_B08_10m.jp2"
-    ndfi_filepath = r"D:\Overland\export-ivorycoast2023-spot\20230108_S7_065N0080W\20230108_S7_065N0080W_ndfi.tif"
-    lai_filepath = r"D:\Overland\export-ivorycoast2023-spot\20230108_S7_065N0080W\20230108_S7_065N0080W_lai.tif"
+    # b04_filepath = r"C:\Users\Renaud\SPAPS\Team project\Ivory\Sentinel\S2B_MSIL2A_20221231T105349_N0509_R051_T29NPH_20221231T133126.SAFE\GRANULE\L2A_T29NPH_A030393_20221231T110338\IMG_DATA\R10m\T29NPH_20221231T105349_B04_10m.jp2"
+    # b08_filepath = r"C:\Users\Renaud\SPAPS\Team project\Ivory\Sentinel\S2B_MSIL2A_20221231T105349_N0509_R051_T29NPH_20221231T133126.SAFE\GRANULE\L2A_T29NPH_A030393_20221231T110338\IMG_DATA\R10m\T29NPH_20221231T105349_B08_10m.jp2"
+    # # ndfi_filepath = r"D:\Overland\export-ivorycoast2023-spot\20230108_S7_065N0080W\20230108_S7_065N0080W_ndfi.tif"
+    # lai_filepath = r"D:\Overland\export-ivorycoast2023-spot\20230108_S7_065N0080W\20230108_S7_065N0080W_lai.tif"
+    ndfi_filepath = r"D:\Overland\export-ivorycoast2023-sentinel2-bundle\20221231_S2B_T29NPH\20221231_S2B_T29NPH_ndfi.tif"
     # indicator_raster_filepath = r"D:\Overland\export-ivorycoast2023-spot\20230108_S7_065N0080W\20230108_S7_065N0080W_cshn.tif"
-    indicator_raster_filepath = lai_filepath
-    vegetation_mask_filepath = r"C:\Users\Renaud\SPAPS\Team project\Ivory\NDFI_vegetation_mask_int16.tif"
+    indicator_raster_filepath = ndfi_filepath
+    # vegetation_mask_filepath = r"C:\Users\Renaud\SPAPS\Team project\Ivory\NDFI_vegetation_mask_int16.tif"
 
     # Get farm shapes
     farms = gpd.read_file(
@@ -241,35 +242,35 @@ if __name__ == '__main__':
     # farm = filtered_farms[filtered_farms['Farm_ID'].astype('int') == selected_farm_id].iloc[0]
     # subregion = farm["geometry"]
     # OR
-    subregion = get_subregion_from_geojson(r"C:\Users\Renaud\Dropbox\SPAPS\Team project\ROI\sub_aoi_agroforestry_vs_full_sun.geojson")
-    # # ndvi, rao, transform = compute_ndvi_and_rao_on_farm_by_id(
-    # #                 b04_filepath, b08_filepath, farms, selected_farm_id, ndvi_threshold, window, na_tolerance,
-    # #                 plot=True
-    # #                 )
-    # # or
-    #
-    process_subregion(
-        mask_index_filepath=ndfi_filepath,
-        mask_threshold=ndfi_threshold,
-        rao_input_index_filpath=indicator_raster_filepath,
-        window=window,
-        na_tolerance=na_tolerance,
-        subregion=subregion,
-        output_filepath="./rao_agroforestery_subregion_1_lai_ndfi_mask_w_11_na_0_2.tif",
-        plot=True
-        )
+    # subregion = get_subregion_from_geojson(r"C:\Users\Renaud\Dropbox\SPAPS\Team project\ROI\sub_aoi_agroforestry_vs_full_sun.geojson")
+    # # # ndvi, rao, transform = compute_ndvi_and_rao_on_farm_by_id(
+    # # #                 b04_filepath, b08_filepath, farms, selected_farm_id, ndvi_threshold, window, na_tolerance,
+    # # #                 plot=True
+    # # #                 )
+    # # # or
+    # #
+    # process_subregion(
+    #     mask_index_filepath=ndfi_filepath,
+    #     mask_threshold=ndfi_threshold,
+    #     rao_input_index_filpath=indicator_raster_filepath,
+    #     window=window,
+    #     na_tolerance=na_tolerance,
+    #     subregion=subregion,
+    #     output_filepath="./rao_agroforestery_subregion_1_lai_ndfi_mask_w_11_na_0_2.tif",
+    #     plot=True
+    #     )
 
-    subregion = get_subregion_from_geojson(
-        r"C:\Users\Renaud\Dropbox\SPAPS\Team project\ROI\sub_aoi_agroforestry_vs_full_sun_3_east_sentinel_proj.geojson")
-    ndvi, rao, transform = compute_ndvi_and_rao_on_farm(b04_filepath,
-                                                        b08_filepath,
-                                                        {"geometry": subregion},
-                                                        ndvi_threshold=0.4,
-                                                        window=11,
-                                                        na_tolerance=0.3,
-                                                        plot=True)
-    write_rao_to_file(rao, transform, "./rao_agroforestery_subregion_3_east_sentinel_ndvi_ndvi_mask_0_4_w_11_na_0_3.tif",
-                      crs="EPSG:32629")
+    # subregion = get_subregion_from_geojson(
+    #     r"C:\Users\Renaud\Dropbox\SPAPS\Team project\ROI\sub_aoi_agroforestry_vs_full_sun_3_east_sentinel_proj.geojson")
+    # ndvi, rao, transform = compute_ndvi_and_rao_on_farm(b04_filepath,
+    #                                                     b08_filepath,
+    #                                                     {"geometry": subregion},
+    #                                                     ndvi_threshold=0.4,
+    #                                                     window=11,
+    #                                                     na_tolerance=0.3,
+    #                                                     plot=True)
+    # write_rao_to_file(rao, transform, "./rao_agroforestery_subregion_3_east_sentinel_ndvi_ndvi_mask_0_4_w_11_na_0_3.tif",
+    #                   crs="EPSG:32629")
     # ndfi, _ = get_raster_data_on_subregion(
     #     ndfi_filepath, subregion)
     # spectral_index, index_transform = get_raster_data_on_subregion(
