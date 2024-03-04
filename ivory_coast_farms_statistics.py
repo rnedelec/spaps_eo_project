@@ -108,6 +108,7 @@ def process_subregion(
             shapely.geometry.multipolygon.MultiPolygon, shapely.geometry.polygon.Polygon],
         window,
         na_tolerance,
+        upper_threshold = False,
         output_filepath=None,
         plot=False,
         ):
@@ -115,11 +116,25 @@ def process_subregion(
         mask_index_filepath, subregion)
     rao_input_index, rao_input_index_transform = get_raster_data_on_subregion(
         rao_input_index_filpath, subregion)
-    rao_input_index_masked = np.where(mask_index > mask_threshold, rao_input_index, np.nan)
+    if upper_threshold:
+        rao_input_index_masked = np.where(
+            (mask_index <= mask_threshold) & (mask_index > 0), rao_input_index, np.nan
+            )
+    else:
+        rao_input_index_masked = np.where(
+            mask_index > mask_threshold, rao_input_index, np.nan
+            )
     rao = spectralrao.spectralrao(rao_input_index_masked, ".",
                                   window=window,
                                   na_tolerance=na_tolerance)[0]
     if plot:
+        # Plot masked input
+        plt.figure()
+        plt.imshow(rao_input_index_masked)
+        plt.colorbar()
+        plt.show()
+
+        # PLot RAO
         plt.figure()
         plt.imshow(rao)
         plt.colorbar()
@@ -137,9 +152,23 @@ if __name__ == '__main__':
     # b08_filepath = r"C:\Users\Renaud\SPAPS\Team project\Ivory\Sentinel\S2B_MSIL2A_20221231T105349_N0509_R051_T29NPH_20221231T133126.SAFE\GRANULE\L2A_T29NPH_A030393_20221231T110338\IMG_DATA\R10m\T29NPH_20221231T105349_B08_10m.jp2"
     # # ndfi_filepath = r"D:\Overland\export-ivorycoast2023-spot\20230108_S7_065N0080W\20230108_S7_065N0080W_ndfi.tif"
     # lai_filepath = r"D:\Overland\export-ivorycoast2023-spot\20230108_S7_065N0080W\20230108_S7_065N0080W_lai.tif"
-    ndfi_filepath = r"D:\Overland\export-ivorycoast2023-sentinel2-bundle\20221231_S2B_T29NPH\20221231_S2B_T29NPH_ndfi.tif"
-    # indicator_raster_filepath = r"D:\Overland\export-ivorycoast2023-spot\20230108_S7_065N0080W\20230108_S7_065N0080W_cshn.tif"
-    indicator_raster_filepath = ndfi_filepath
+
+    # NPH
+    # product_name = "sentinel_nph_overland"
+    # scv_filepath = r"D:\Overland\export-ivorycoast2023-sentinel2-bundle\20221231_S2B_T29NPH\20221231_S2B_T29NPH_scv.tif"
+    # lai_filepath = r"D:\Overland\export-ivorycoast2023-sentinel2-bundle\20221231_S2B_T29NPH\20221231_S2B_T29NPH_lai.tif"
+    # cshn_filepath = r"D:\Overland\export-ivorycoast2023-sentinel2-bundle\20221231_S2B_T29NPH\20221231_S2B_T29NPH_cshn.tif"
+    # ndfi_filepath = r"D:\Overland\export-ivorycoast2023-sentinel2-bundle\20221231_S2B_T29NPH\20221231_S2B_T29NPH_ndfi.tif"
+
+    # NNH
+    product_name = "sentinel_nnh_overland"
+    scv_filepath = r"D:\Overland\export-ivorycoast2023-sentinel2-bundle\20221231_S2B_T29NNH\20221231_S2B_T29NNH_scv.tif"
+    lai_filepath = r"D:\Overland\export-ivorycoast2023-sentinel2-bundle\20221231_S2B_T29NNH\20221231_S2B_T29NNH_lai.tif"
+    cshn_filepath = r"D:\Overland\export-ivorycoast2023-sentinel2-bundle\20221231_S2B_T29NNH\20221231_S2B_T29NNH_cshn.tif"
+    ndfi_filepath = r"D:\Overland\export-ivorycoast2023-sentinel2-bundle\20221231_S2B_T29NNH\20221231_S2B_T29NNH_ndfi.tif"
+
+    # cshn_filepath = r"D:\Overland\export-ivorycoast2023-spot\20230108_S7_065N0080W\20230108_S7_065N0080W_cshn.tif"
+    indicator_raster_filepath = lai_filepath
     # vegetation_mask_filepath = r"C:\Users\Renaud\SPAPS\Team project\Ivory\NDFI_vegetation_mask_int16.tif"
 
     # Get farm shapes
@@ -162,10 +191,11 @@ if __name__ == '__main__':
     ]
 
     # Methodology meta parameters
-    window = 11
-    na_tolerance = 0.2
+    window = 5
+    na_tolerance = 0.3
     # ndvi_threshold = 0.4
     ndfi_threshold = 6500
+    scv_threshold = 850
 
     results = pd.DataFrame(columns=["ID", "area", "rao", "full_sun", "shaded", "no_full_sun", "nb_pixel_not_nan"])
 
@@ -184,26 +214,14 @@ if __name__ == '__main__':
         # Compute NDVI and RAO
         try:
             rao = process_subregion(
-                mask_index_filepath=ndfi_filepath,
-                mask_threshold=ndfi_threshold,
-                rao_input_index_filpath=indicator_raster_filepath,
+                mask_index_filepath=scv_filepath,
+                mask_threshold=scv_threshold,
+                rao_input_index_filpath=lai_filepath,
                 subregion=farm["geometry"],
+                upper_threshold=True,
                 window=window,
                 na_tolerance=na_tolerance
                 )
-            # ndfi, _ = get_raster_data_on_subregion(
-            #     ndfi_filepath, farm["geometry"])
-            # spectral_index, index_transform = get_raster_data_on_subregion(indicator_raster_filepath, farm["geometry"])
-            # # vegetation_mask, mask_transform = get_raster_data_on_subregion(vegetation_mask_filepath, farm["geometry"])
-            # # masked_ndfi = np.where(ndfi > ndfi_threshold, ndfi, np.nan)
-            # masked_index = np.where(ndfi > ndfi_threshold, spectral_index, np.nan)
-            # rao = spectralrao.spectralrao(masked_index, ".",
-            #                               window=window,
-            #                               na_tolerance=na_tolerance)[0]
-            # # ndvi, rao, transform = compute_ndvi_and_rao_on_farm(
-            # #     b04_filepath, b08_filepath, farm, ndvi_threshold, window, na_tolerance,
-            # #     plot=False
-            # #     )
         except ValueError as e:
             print(f"Farm {farm['Farm_ID']} not processed")
             print(e)
@@ -237,6 +255,9 @@ if __name__ == '__main__':
     sns.scatterplot(results, x='shaded', y='rao')
     plt.show()
 
+    results.to_csv(
+        f"{product_name}_lai_mask_scv_{scv_threshold}_w_{window}_na_{str(na_tolerance).replace('.', '_')}.csv"
+        )
     # If we want to check a specific farm. Execute this code
     # selected_farm_id = 92
     # farm = filtered_farms[filtered_farms['Farm_ID'].astype('int') == selected_farm_id].iloc[0]
