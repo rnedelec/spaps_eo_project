@@ -10,7 +10,7 @@ import numpy as np
 
 import matplotlib.pyplot as plt
 
-sys.path.append(r"../../spectralrao-monitoring")
+sys.path.append(r"../../../spectralrao-monitoring")
 
 import spectralrao
 
@@ -26,10 +26,10 @@ def clip_data_to_farm(farm, dataset,  plot=False, down_sampling_factor=10):
                      "width": out_image.shape[2],
                      "transform": out_transform})
 
-    with rasterio.open("temp_masked.tif", "w", **out_meta) as dest:
+    with rasterio.open("../temp_masked.tif", "w", **out_meta) as dest:
         dest.write(out_image)
 
-    with rasterio.open("temp_masked.tif", "r") as dataset_croped:
+    with rasterio.open("../temp_masked.tif", "r") as dataset_croped:
         # Read and down sample image
         data = dataset_croped.read(
             [1, 2, 3],
