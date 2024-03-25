@@ -1,6 +1,6 @@
 import sys
 import json
-from typing import Union
+from typing import Union, Optional
 
 import scipy
 import shapely.errors
@@ -107,11 +107,11 @@ def process_subregion(
         rao_input_index_filpath: str,
         subregion: Union[
             shapely.geometry.multipolygon.MultiPolygon, shapely.geometry.polygon.Polygon],
-        window,
-        na_tolerance,
-        upper_threshold=False,
-        output_filepath=None,
-        plot=False,
+        window: int,
+        na_tolerance: float,
+        upper_threshold: Optional[bool] = False,
+        output_filepath: Optional[str] = None,
+        plot: Optional[bool] = False,
         ):
     """Filters out bare soil pixels and computes the Rao's Q indicator on a given subregion
 
@@ -134,7 +134,7 @@ def process_subregion(
     output_filepath: str, optional
         Path where the outputs Rao's Q will be stored
     plot: bool, optional
-        If True the masked input index and the output will be plotted
+        If True, the masked input index and the output will be plotted
 
     Returns
     -------
