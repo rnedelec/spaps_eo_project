@@ -51,9 +51,9 @@ if __name__ == '__main__':
         na_tolerance=na_tolerance,
         subregion=subregion,
         upper_threshold=True,
-        # output_filepath=f"./rao_subregion_{subregion_name}_{product_name}_{indicator_name}_"
-        #                 f"{mask_name}_mask_{scv_threshold}"
-        #                 f"w_{window}_"
-        #                 f"na_{str(na_tolerance).replace('.', '_')}.tif",
+        output_filepath=f"./rao_subregion_{subregion_name}_{product_name}_{indicator_name}_"
+                        f"{mask_name}_mask_{scv_threshold}"
+                        f"w_{window}_"
+                        f"na_{str(na_tolerance).replace('.', '_')}.tif",
         plot=True
         )
